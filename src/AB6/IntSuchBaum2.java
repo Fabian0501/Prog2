@@ -1,5 +1,8 @@
 package AB6;
 
+import AB5.Folge;
+import AB5.FolgeMitRing;
+
 public class IntSuchBaum2 {
 
     Knoten root;
@@ -71,13 +74,13 @@ public class IntSuchBaum2 {
             return "";
         }
         else { // der besuchte knoten ist nicht leer
-            // das schema in dem die toString ausgabe sein soll
+            // wir durchlaufen den linken und rechten teilbaums jedes knotens und fügen die inhalte dieser knoten in einen string zsm.
             return "(" + toStringHelper(current.left) + current.value + toStringHelper(current.right) + ")";
         }
      }
 
      public int hoehe(){
-        if (root == null){
+        if (isEmpty()){
             return 0;
         }
         return hoeheHelper(root);
@@ -86,6 +89,12 @@ public class IntSuchBaum2 {
         int hoehe = 1;
         if (current != null){
             return hoehe += Math.max(hoeheHelper(current.left) , hoeheHelper(current.right)) +1;
+            /**
+             * wir gehen zuerst den gesamten linken teilbaum herunter und addieren jedes Mal 1 für eine ebene die wir tierfer gehen.
+             * das selbe machen wir für den rechten teilbaum.
+             * Am ende vergleichen wir die längen der beiden teilbäume, nehmen den längeren und addieren 1 dazu.
+             * diese letzte eins die dazu addiert wird, steht für die ebene root.
+             */
         }
         return hoehe;
      }
@@ -104,16 +113,68 @@ public class IntSuchBaum2 {
         return size;
      }
 
+     public Folge preorder(){
+        if (isEmpty()){
+            return new FolgeMitRing(0);
+        }
+        return preorderHelper(root);
+     }
+     private Folge preorderHelper(Knoten current){
+        Folge<Integer> folge = new FolgeMitRing<>(size());
+        if (current != null){ //wenn mein betrachteter knoten nicht null --> knoten wert in den ring einfügen
+            folge.insert(current.value);
+        }
+        preorderHelper(current.left); // betrachte den linken Teilbaum rekursiv
+        preorderHelper(current.right); // betrachte den rechten Teilbaum rekursiv
+
+        return folge;
+     }
+
+     public Folge inorder(){
+        if (isEmpty()){
+            return new FolgeMitRing(0);
+        }
+        return inorderHelper(root);
+     }
+     private Folge inorderHelper(Knoten current){
+         Folge<Integer> folge = new FolgeMitRing<>(size());
+         inorderHelper(current.left); // betrachte den linken Teilbaum rekursiv
+         if (current != null){ //wenn mein betrachteter knoten nicht null --> knoten wert in den ring einfügen
+             folge.insert(current.value);
+         }
+         inorderHelper(current.right); // betrachte den rechten Teilbaum rekursiv
+         return folge;
+     }
+
+     public Folge postorder(){
+        if (isEmpty()){
+            return new FolgeMitRing(0);
+        }
+        return postorderHelper(root);
+     }
+     private Folge postorderHelper(Knoten current){
+        Folge<Integer> folge = new FolgeMitRing<>(size());
+        postorderHelper(current.left); // betrachte den linken Teilbaum rekursiv
+        postorderHelper(current.right); // betrachte den rechten Teilbaum rekursiv
+        if (current != null){ //wenn mein betrachteter knoten nicht null --> knoten wert in den ring einfügen
+            folge.insert(current.value);
+        }
+        return folge;
+     }
 
     public static void main(String[] args) {
         IntSuchBaum baum = new IntSuchBaum();
-        baum.insert(10);
+        baum.insert(3);
+        baum.insert(2);
+        baum.insert(1);
         baum.insert(5);
-        baum.insert(15);
-        baum.insert(13);
-        baum.insert(12);
+        baum.insert(4);
+        baum.insert(7);
         System.out.println(baum.toString());
         System.out.println(baum.hoehe());
         System.out.println(baum.size());
+        System.out.println(baum.preorder().toString());
+        System.out.println(baum.inorder().toString());
+        System.out.println(baum.postorder().toString());
     }
 }
