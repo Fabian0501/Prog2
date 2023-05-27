@@ -10,9 +10,7 @@ public class IntSuchBaum {
     public class Knoten {
         public Knoten left = null;
         public Knoten right = null;
-
         public Integer value;
-
         public Knoten(Integer value){
             this.value = value;
         }
@@ -21,89 +19,53 @@ public class IntSuchBaum {
     public IntSuchBaum(){ //Konstruktor zur erstmaligen Initialisierung
         root = null;
     }
-
     public boolean isEmpty(){
         return root == null;
     }
 
-
-    public void insert(Integer data){
+    public void insert(Integer value){
         if (isEmpty()){
-            root = new Knoten(data);
+            root = new Knoten(value);
         }
-        if (! contains(data))
-        {
-            if (data > root.value) //...data must be placed on the right node...
-            {
-                if (root.right == null){ //...check if the right node of my current node is empty...
-                    root.right = new Knoten(data);
-                }
-                else { //...right node of my current node isn't empty...
-                    insertHelper(data, root.right);
-                }
-            }
-            if (data < root.value) //...data must be placed on  the left node...
-            {
-                if (root.left == null) { //...check if the left node of my current node is empty...
-                    root.left = new Knoten(data);
-                }
-                else { //...left node of my current node isn't empty
-                    insertHelper(data, root.left);
-                }
-            }
+        else {
+            insertHelper(root, value);
         }
     }
-    private void insertHelper(Integer data,Knoten current){
-        if (data > current.value) //...data must be placed on the right node...
-        {
-            if (current.right == null){ //...check if the right node of my current is empty...
-                current.right = new Knoten(data); //...new node added
-            }
-            else { //...right node isn't empty...
-                insertHelper(data, current.right); //...move to the next right node and check again...
-            }
+    private void insertHelper(Knoten current, Integer value){
+        if (value == current.value){ //beim vergleich zwischen integer ist == oke, ansonsten equals verwenden
+            return;
         }
-        else{ //...data is smaller than current.value, so data must be placed on the left node...
-            if (current.left == null){ //...check if the left node of my current is empty...
-                current.left = new Knoten(data); //...new node added
+        if (value > current.value){
+            if (current.right == null){
+                current.right = new Knoten(value);
+            }else{
+                insertHelper(current.right, value);
             }
-            else { //...left node isn't empty...
-                insertHelper(data, current.left); //...move to the next left node and check again...
+        }else {
+            if (current.left == null){
+                current.left = new Knoten(value);
+            }else {
+                insertHelper(current.left, value);
             }
         }
     }
 
 
-    public boolean contains(Integer data){
-        if (! isEmpty())
-        {
-            if (data.equals(root.value))
-            {
-                return true;
-            }
-            //TODO kommentar für &&... schrieben
-            if (data > root.value && root.right != null){  //...data is on the right side of the node...
-                containsHelper(data, root.right);
-            }
-            else if (data < root.value && root.left != null){ //...data is on the left side of the node...
-                containsHelper(data, root.left);
-            }
+    public boolean contains(Integer value){
+        if (isEmpty()){
+            return false;
         }
-        return false;
+        return containsHelper(root, value);
     }
-    private boolean containsHelper(Integer value, Knoten current){
-        if (current != null)
-        {
-            if (value.equals(current.value)){
-                return true;
-            }
-            //TODO kommentar für &&... schrieben
-            if (value > current.value && current.right != null){ //...data must be on the right node...
-                containsHelper(value, current.right); //...go on the right node...
-            }
-            else if (value < current.value && current.left != null){ //... data < current.value, so data must be on the left node...
-                containsHelper(value, current.left);//...go on the left node...
-            }
+    private boolean containsHelper(Knoten current, Integer value){
+        if (value == current.value){
+            return true;
+        }
+        if (value > current.value) {
+            containsHelper(current.right, value);
+        }
+        if (value < current.value){
+            containsHelper(current.left, value);
         }
         return false;
     }
@@ -113,19 +75,10 @@ public class IntSuchBaum {
         return toStringHelper(root);
     }
     private String toStringHelper( Knoten current) {
-        String s = "(";
-        if(current != null) {
-            if (current.left != null){
-                s += toStringHelper(current.left);
-            }
-
-            s = s + current.value;
-
-            if (current.right != null){
-                s += toStringHelper(current.right);
-            }
+        if (current == null){
+            return "";
         }
-        return s += ")";
+        return "(" + toStringHelper(current.left) + current.value + toStringHelper(current.right) + ")";
     }
 
 
@@ -133,11 +86,10 @@ public class IntSuchBaum {
         return hoeheHelper(root);
     }
     private int hoeheHelper(Knoten current){
-        int h = 0;
         if (current != null){
-            h = Math.max(hoeheHelper(current.left) , hoeheHelper(current.right)) +1;
+            return Math.max(hoeheHelper(current.left) , hoeheHelper(current.right)) +1;
         }
-        return h;
+        return 0;
     }
 
     public int hoehe2(){
@@ -161,22 +113,22 @@ public class IntSuchBaum {
         return sizeHelper(root);
     }
     private int sizeHelper(Knoten current){
-        /**
-         * warum size size = 1
-         * 1) Wir wissen, durch die überprufen oben in der size() methode, das root nicht null ist, somit gibt es ein element.
-         * 2) size ist der rückgabe wert der methode, dh durch den rekursiven aufruf von sizeHelper() wird auch immer size zurückgegeben.
-         *
-         * was bringt das jetzt ...
-         *
-         * indem wir in rekursiven aufrufen size += sizeHelper() schreiben, können wir die anzahl der knoten bestimmen,denn
-         * durch 2) wissen wir das size der rückgabewert ist, somit wird auf unseres derzeitiges size immer size drauf addiert.
-         * dieses schema macht nichts anderes als <gesammt Anzahl der gefundenen Knoten> += <gefundener knoten (+=1)>
-         * dies machen wir für den linken-und-rechten Teilbaum
-         *
-         * wäre size 0 würde immer null raus kommen, wäre size = 2 würde die doppelte anzahl an bestehenden knoten raus kommen ...
-         *
-         * für size = 0 könnte man auch hinter den rekursiven aufrufen + 1 hinzufügen,
-         * alerdings wäre man dann bei anzahlAllerKnoten-1 und müsste in der obermethode return sizeHelper(root)+1 hinzufügen.
+        /*
+          warum size = 1
+          1) Wir wissen, durch die überprüfen oben in der size() methode, das root nicht null ist, somit gibt es ein element.
+          2) size ist der rückgabe wert der methode, dh durch den rekursiven aufruf von sizeHelper() wird auch immer size zurückgegeben.
+
+          was bringt das jetzt ...
+
+          indem wir in rekursiven aufrufen size += sizeHelper() schreiben, können wir die anzahl der knoten bestimmen,
+          denn durch 2) wissen wir das size der rückgabewert ist, somit wird auf unseres derzeitiges size immer size drauf addiert.
+          dieses schema macht nichts anderes als <Gesamtanzahl der gefundenen Knoten> += <gefundener knoten (+=1)>
+          dies machen wir für den linken-und-rechten Teilbaum
+
+          wäre size 0 würde immer null rauskommen, wäre size = 2 würde die doppelte anzahl an bestehenden knoten rauskommen ...
+
+          für size = 0 könnte man auch hinter den rekursiven aufrufen + 1 hinzufügen,
+          allerdings wäre man dann bei anzahlAllerKnoten-1 und müsste in der obermethode return sizeHelper(root)+1 hinzufügen.
          */
         int size = 1;
         if (current != null){
@@ -192,6 +144,22 @@ public class IntSuchBaum {
         return size;
     }
 
+    public int size2(){
+        if (root == null){
+            return 0;
+        }
+        return sizeHelper2(root);
+    }
+    private int sizeHelper2(Knoten current){
+        int size = 0;
+        if (current != null){
+            size++;
+            size += sizeHelper2(current.left);
+            size += sizeHelper2(current.right);
+        }
+        return size;
+    }
+
     public Folge preorder(){
         Folge<Integer> folge = new FolgeMitRing<>(size());
         preorderHelper(root, folge);
@@ -203,12 +171,12 @@ public class IntSuchBaum {
             ring.insert(current.value);
 
             if (current.left != null){
-                //stellt alle elemente da, die unter einem Elternknoten das Linke Kindknoten sind
+                //stellt alle elemente dar, die unter einem Elternknoten das linke Kindknoten sind
                 preorderHelper(current.left , ring);
             }
 
             if (current.right != null){
-                //stellt alle elemente da, die unter einem Elternknoten das Rechte Kindknoten sind
+                //stellt alle elemente dar, die unter einem Elternknoten das rechte Kindknoten sind
                 preorderHelper(current.right, ring);
             }
         }
@@ -252,6 +220,15 @@ public class IntSuchBaum {
         }
     }
 
+    public Folge breitensuche(){
+        Folge<Integer> folge = new FolgeMitRing<>(size());
+        breitensucheHelper(root,folge);
+        return folge;
+    }
+    private void breitensucheHelper(Knoten current, Folge folge){
+
+    }
+
     public static void main(String[] args) {
         IntSuchBaum baum = new IntSuchBaum();
         baum.insert(3);
@@ -260,10 +237,10 @@ public class IntSuchBaum {
         baum.insert(4);
         baum.insert(1);
         baum.insert(7);
-//        System.out.println(baum.toString());
-//        System.out.println(baum.hoehe());
-//        System.out.println(baum.hoehe2());
-//        System.out.println(baum.size());
+        System.out.println(baum.toString());
+        System.out.println(baum.hoehe());
+        System.out.println(baum.hoehe2());
+        System.out.println(baum.size());
         System.out.println(baum.postorder().toString());
 
     }

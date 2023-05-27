@@ -24,7 +24,7 @@ public class FolgeMitRing <T> implements Folge<T>{
     /**
      * remove methode arbeitet mit verkleinerung des scopes anstatt die werte auf null zu setzten
      * @return erstes element im ring
-     * @throws IndexOutOfBoundsException , über die aufgerufene methode, falls ring leer sein sollte
+     * @throws IndexOutOfBoundsException , über die aufgerufene methode, falls, ring leer sein sollte
      */
     @Override
     public T remove() throws IndexOutOfBoundsException {

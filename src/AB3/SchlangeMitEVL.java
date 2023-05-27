@@ -38,7 +38,7 @@ public class SchlangeMitEVL<T> implements schlange<T> {
      * Um das prinzip der Schlange umzusetzen, muss insert und remove an unterschiedlichen stellen passieren,
      * DH. entweder insertFirst und removeLast    oder    insertLast und removeFirst
      *
-     * Da wir bei der einfach verkettetet liste, um last zu entfernen, einmal die gesammte liste bis zum vorletzten element durchgehen müssen
+     * Da wir bei der einfach verkettetet liste, um last zu entfernen, einmal die gesamte liste bis zum vorletzten element durchgehen müssen
      * wäre es deutlich effektiver die herangehensweise zu ändern.
      * ==> addLast und removeFirst, denn so haben wir Zugriff auf alle benötigten werte und brauchen KEINE schleife
      *
