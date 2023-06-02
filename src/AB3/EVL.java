@@ -23,9 +23,9 @@ public class EVL<T> {
         return first.data;
     }
 
-    public T getLast() throws IllegalStateException{
+    public T getLast() throws IndexOutOfBoundsException{
         if (isEmpty()){
-            throw new IllegalStateException();
+            throw new IndexOutOfBoundsException("liste ist leer");
         }
         return last.data;
     }
@@ -63,6 +63,7 @@ public class EVL<T> {
         if (läufer.next == null){   //Liste hat nur ein Element
             first = null;
             last = null;
+            size = 0;
             return läufer.data;
         }
         while (läufer.next.next != null){   //Liste bis zum vorletzten Element durchlaufen
@@ -77,6 +78,7 @@ public class EVL<T> {
         T inhalt_Letztes_Element = läufer.next.data;
         läufer.next = null;
         last = läufer;
+        size--;
         return inhalt_Letztes_Element;
     }
 
@@ -88,12 +90,14 @@ public class EVL<T> {
         if (size() == 1){
             tmp = first;
             first = last = null;
+            size = 0;
             return tmp.data;
         }
         T oldFirst = first.data;
         tmp = first.next;
         first.next = null;
         first = tmp;
+        size--;
         return oldFirst;
     }
 
@@ -129,20 +133,13 @@ public class EVL<T> {
     }
 
     public static void main(String[] args) {
-        EVL<Integer> integerEVL2 = new EVL<>();
+        EVL<Integer> evl = new EVL<>();
         Integer[] integers = {1,2,3,4,5};
-        for (Integer i : integers) integerEVL2.addLast(i);
-
-        integerEVL2.addLast(6);
-        integerEVL2.addFirst(0);
-        integerEVL2.addFirst(120);
-        System.out.println(integerEVL2);
-
-        System.out.println();
-
-        System.out.println(integerEVL2.removeFirst());
-        System.out.println(integerEVL2.removeFirst());
-        System.out.println(integerEVL2);
+        for (Integer i : integers) evl.addLast(i);
+        System.out.println(evl.toString());
+        evl.removeFirst();
+        System.out.println(evl.toString());
+        System.out.println(evl.first);
     }
 
 }

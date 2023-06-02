@@ -1,5 +1,6 @@
 package AB6;
 
+import AB3.SchlangeMitEVL;
 import AB5.Folge;
 import AB5.FolgeMitRing;
 
@@ -58,14 +59,25 @@ public class IntSuchBaum {
         return containsHelper(root, value);
     }
     private boolean containsHelper(Knoten current, Integer value){
-        if (value == current.value){
-            return true;
-        }
-        if (value > current.value) {
-            containsHelper(current.right, value);
-        }
-        if (value < current.value){
-            containsHelper(current.left, value);
+        /*
+        In der gegebenen Methode containsHelper wird die Ausführung nicht abgebrochen,
+        wenn return true erreicht wird, weil der Rückgabewert nicht sofort an den Aufrufer zurückgegeben wird.
+        Stattdessen wird der Rückgabewert nur an den Aufruf der rekursiven containsHelper-Methode weitergegeben.
+        In den Zeilen, in denen containsHelper erneut aufgerufen wird, wird jedoch der Rückgabewert nicht verwendet.
+        Die rekursive Methode wird aufgerufen, aber der Rückgabewert wird nicht beachtet.
+        Dies bedeutet, dass der Wert von return true nicht an den ursprünglichen Aufrufer zurückgegeben wird,
+        sondern die Methode stattdessen weiterhin durchläuft und return false am Ende erreicht.
+         */
+        if (current != null){
+            if (value == current.value){
+                return true;
+            }
+            if (value > current.value) {
+                return containsHelper(current.right, value);
+            }
+            if (value < current.value){
+                return containsHelper(current.left, value);
+            }
         }
         return false;
     }
@@ -222,26 +234,220 @@ public class IntSuchBaum {
 
     public Folge breitensuche(){
         Folge<Integer> folge = new FolgeMitRing<>(size());
-        breitensucheHelper(root,folge);
+        SchlangeMitEVL<Knoten> fifo = new SchlangeMitEVL<>();
+        if (! isEmpty()){
+            fifo.insert(root);
+        }
+        breitensucheHelper(root,folge,fifo);
         return folge;
     }
-    private void breitensucheHelper(Knoten current, Folge folge){
-
+    private void breitensucheHelper(Knoten current, Folge folge , SchlangeMitEVL fifo){
+        if (current != null) {
+            if (current.left != null) {
+                fifo.insert(current.left);
+            }
+            if (current.right != null) {
+                fifo.insert(current.right);
+            }
+        }
+        Knoten firstOutFifo = (Knoten) fifo.remove();
+        folge.insert( firstOutFifo.value );
+        if (fifo.size() > 0){
+            breitensucheHelper((Knoten) fifo.front(), folge, fifo);
+        }
     }
+
+
+    public Knoten remove(Integer removeValue){
+        Knoten knoten = searchNode(removeValue, root); //hilfsfunktion, um den knoten des entfernenden elements zu suchen
+        if (knoten == null){ //dh der gesuchte wert ist nicht im baum enthalten
+            return null;
+        }
+
+        Knoten parent = searchParent(root, knoten); //hilfsfunktion, um parent des gesuchten element zu finden
+
+        //Fall 1: der knoten hat keine teil bäume
+        if (knoten.left == null && knoten.right == null){
+
+            if (knoten == root){ // Sonderfall wurzel wird entfernt
+                Knoten tmp = root;
+                root = null;
+                return tmp;
+            }
+
+            //referenz zum elternknoten entfernen
+            if (parent.left == knoten) parent.left = null; //kein equals verwenden, da wenn parent.left null ist wird eine exception
+            if (parent.right == knoten) parent.right = null;
+            return knoten;
+        }
+
+        //Fall 2: ein teilbaum
+        if (hasOnlyOneSubtree(knoten)){
+
+            if (knoten == root){ // Sonderfall wurzel wird entfernt
+                Knoten tmp = root;
+                Knoten nachfolger = searchInorderReplacer(knoten);
+                remove(nachfolger.value); //entfernt nachfolger und strukturiert je nachdem den baum um
+                root.value = nachfolger.value; //wert in root durch nachfolger überschreiben
+                return tmp;
+            }
+
+            if (parent.left == knoten){ //gesuchter knoten liegt links vom parent
+                if (knoten.left != null){ //Teilbaum liegt links
+                    parent.left = knoten.left; //referenz im elternknoten auf teilbaum vom gesuchten knoten setzt
+                }
+                else { //Teilbaum liegt rechts
+                    parent.left = knoten.right; //referenz im elternknoten auf teilbaum vom gesuchten knoten setzt
+                }
+            }
+            if (parent.right == knoten){ // gesuchter knoten liegt rechts vom parent
+                if (knoten.left != null){ //Teilbaum liegt links
+                    parent.right = knoten.left; //referenz im elternknoten auf teilbaum vom gesuchten knoten setzt
+                }
+                else { //Teilbaum liegt rechts
+                    parent.right = knoten.right; //referenz im elternknoten auf teilbaum vom gesuchten knoten setzt
+                }
+            }
+            return knoten;
+        }
+
+        //Fall 3: zwei teilbäume
+        if (knoten.left != null && knoten.right != null){
+
+            if (knoten == root){ // Sonderfall wurzel wird entfernt
+                Knoten tmp = root;
+                Knoten nachfolger = searchInorderReplacer(knoten);
+                remove(nachfolger.value); //entfernt nachfolger und strukturiert je nachdem den baum um
+                root.value = nachfolger.value; //wert in root durch nachfolger überschreiben
+                return tmp;
+            }
+
+
+            parent = searchParent(root, knoten); //parent vom gesuchten element
+            Knoten inorderReplacer = searchInorderReplacer(knoten); //Sucht den Nachfolger
+            Knoten parentOfReplacer = searchParent(root,inorderReplacer); //sucht den elternknoten vom Nachfolger
+
+            //Der wert im gesuchten Knoten wird durch seinen nachfolger überschrieben
+            if (parent.left == knoten){  //knoten liegt links vom parent
+                parent.left.value = inorderReplacer.value; //überschrieben
+            }
+            if (parent.right == knoten){ //Knoten liegt rechts vom parent
+                parent.right.value = inorderReplacer.value; //überschreiben
+            }
+
+            //löschen des Nachfolger elements
+            if (parentOfReplacer.left == inorderReplacer){
+                parentOfReplacer.left = null;
+            }
+            if (parentOfReplacer.right == inorderReplacer){
+                parentOfReplacer.right = null;
+            }
+        }
+        return knoten;
+    }
+
+
+    //Hilfsmethoden
+    /**
+     * sucht den kleinsten wert im rechten teilbaum und den größten wert im linken teilbaum
+     * @param current der zu Entfernende knoten
+     * @return der Knoten der am tiefsten in dem baum liegt. sprich der knoten bei dem die while die meisten durchläufe hat
+     */
+    private Knoten searchInorderReplacer(Knoten current){
+        int stepsInRightTree = 0,  stepsInLeftTree = 0;
+        Knoten smallestRight = null;
+        Knoten highestLeft = null;
+
+        //Die beiden if abfragen, um zu sehen, ob es überhaupt elemente an root gibt, denn wenn nicht, sind die schleifen unten überflüssig
+        if (current.right != null){
+            smallestRight = current.right;
+            stepsInRightTree++;
+        }
+        if (current.left != null){
+            highestLeft = current.left;
+            stepsInLeftTree++;
+        }
+
+        //schleifen die durch den baum iterieren, um den Nachfolger vom gesuchten element zu finden, der es ersetzten soll
+        if (smallestRight != null && smallestRight.left != null){
+            while (smallestRight.left != null) {
+                smallestRight = smallestRight.left;
+                stepsInRightTree++;
+            }
+        }
+        if (highestLeft != null && highestLeft.right != null){
+            while (highestLeft.right != null){
+                highestLeft = highestLeft.right;
+                stepsInLeftTree++;
+            }
+        }
+
+        return stepsInRightTree > stepsInLeftTree ? smallestRight : highestLeft;
+    }
+    private boolean hasOnlyOneSubtree(Knoten knoten){
+        if (knoten.left != null && knoten.right == null){
+            return true;
+        }
+        if (knoten.left == null && knoten.right != null){
+            return true;
+        }
+        return false;
+    }
+    private Knoten searchParent(Knoten current, Knoten knoten){
+        if (current.left != null){
+            if (current.left.equals(knoten)){
+                return current;
+            }
+        }
+        if (current.right != null){
+            if (current.right.equals(knoten)){
+                return current;
+            }
+        }
+        if (knoten.value > current.value && current.right != null){
+            return searchParent(current.right, knoten);
+        }
+        if (knoten.value < current.value && current.left != null){
+            return searchParent(current.left, knoten);
+        }
+        else {
+            return null;
+        }
+    }
+    private Knoten searchNode(Integer removeValue, Knoten current){
+        if (removeValue == current.value){
+            return current;
+        }
+        else if (removeValue > current.value && current.right != null){
+            return searchNode(removeValue, current.right);
+        }
+        else if (removeValue < current.value && current.left != null){
+            return searchNode(removeValue, current.left);
+        }
+        else {
+            return null;
+        }
+    }
+
+
+
+
 
     public static void main(String[] args) {
         IntSuchBaum baum = new IntSuchBaum();
-        baum.insert(3);
-        baum.insert(2);
-        baum.insert(5);
+        baum.insert(6);
         baum.insert(4);
         baum.insert(1);
+        baum.insert(9);
         baum.insert(7);
+        baum.insert(10);
+        baum.insert(8);
         System.out.println(baum.toString());
-        System.out.println(baum.hoehe());
-        System.out.println(baum.hoehe2());
-        System.out.println(baum.size());
-        System.out.println(baum.postorder().toString());
+//        baum.remove3(9);
+//        baum.remove3(8);
+        baum.remove(6);
+        System.gc();
+        System.out.println(baum.toString());
 
     }
 }

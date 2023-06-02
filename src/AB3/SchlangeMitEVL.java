@@ -29,7 +29,7 @@ public class SchlangeMitEVL<T> implements schlange<T> {
     }
     @Override
     public T front() throws NoSuchElementException {
-        return evl.getLast(); //...Value and not the Position
+        return evl.getFirst(); //...Value and not the Position
     }
 
 
@@ -53,6 +53,21 @@ public class SchlangeMitEVL<T> implements schlange<T> {
     @Override
     public T remove() throws NoSuchElementException {
         return evl.removeFirst();
+    }
+
+    public String toString(){
+        return evl.toString();
+    }
+
+    public static void main(String[] args) {
+        SchlangeMitEVL<Integer> schlange = new SchlangeMitEVL<>();
+        for (int i = 1 ; i <= 5; i++){
+            schlange.insert(i);
+        }
+        System.out.println(schlange.toString());
+        schlange.remove();
+        System.out.println(schlange.toString());
+        System.out.println(schlange.front());
     }
 
 
