@@ -1,30 +1,53 @@
-package AB6;
+package AB7;
 
 import AB3.SchlangeMitEVL;
 import AB5.Folge;
 import AB5.FolgeMitRing;
+import org.jetbrains.annotations.NotNull;
 
-public class IntSuchBaum {
+import java.util.Comparator;
+
+public class SuchBaum<T> implements Comparable<SuchBaum <T> >{
 
     Knoten root;
+
+    private Comparator<T> comparator;
+
+    //Konstruktor zur erstmaligen Initialisierung
+    public SuchBaum(){
+        root = null;
+        comparator = null;
+    }
+    public SuchBaum(Comparator<T> comp){
+        comparator = comp;
+    }
+
+    @Override
+    public int compareTo(@NotNull SuchBaum<T> other) {
+        return this.compareTo(other);
+    }
+
 
     public class Knoten {
         public Knoten left = null;
         public Knoten right = null;
-        public Integer value;
-        public Knoten(Integer value){
+        public T value;
+
+        public Knoten(T value) {
             this.value = value;
         }
     }
 
-    public IntSuchBaum(){ //Konstruktor zur erstmaligen Initialisierung
-        root = null;
+    private int compareHelper(T object1, T object2){
+        return comparator == null ? ((Comparable<T>)object1).compareTo(object2) : comparator.compare(object1, object2);
     }
+
+
     public boolean isEmpty(){
         return root == null;
     }
 
-    public void insert(Integer value){
+    public void insert(T value){
         if (isEmpty()){
             root = new Knoten(value);
         }
@@ -32,17 +55,18 @@ public class IntSuchBaum {
             insertHelper(root, value);
         }
     }
-    private void insertHelper(Knoten current, Integer value){
-        if (value == current.value){ //beim vergleich zwischen integer ist == oke, ansonsten equals verwenden
+    private void insertHelper(Knoten current, T value){
+        if (compareHelper(current.value, value) == 0){
             return;
         }
-        if (value > current.value){
+        if (compareHelper(value, current.value) > 0){
             if (current.right == null){
                 current.right = new Knoten(value);
             }else{
                 insertHelper(current.right, value);
             }
-        }else {
+        }
+        else { //compareHelper < 0
             if (current.left == null){
                 current.left = new Knoten(value);
             }else {
@@ -52,13 +76,13 @@ public class IntSuchBaum {
     }
 
 
-    public boolean contains(Integer value){
+    public boolean contains(T value){
         if (isEmpty()){
             return false;
         }
         return containsHelper(root, value);
     }
-    private boolean containsHelper(Knoten current, Integer value){
+    private boolean containsHelper(Knoten current, T value){
         /*
         In der gegebenen Methode containsHelper wird die Ausführung nicht abgebrochen,
         wenn return true erreicht wird, weil der Rückgabewert nicht sofort an den Aufrufer zurückgegeben wird.
@@ -69,13 +93,13 @@ public class IntSuchBaum {
         sondern die Methode stattdessen weiterhin durchläuft und return false am Ende erreicht.
          */
         if (current != null){
-            if (value == current.value){
+            if (compareHelper(value, current.value) == 0){
                 return true;
             }
-            if (value > current.value) {
+            if (compareHelper(value, current.value) > 0){
                 return containsHelper(current.right, value);
             }
-            if (value < current.value){
+            if (compareHelper(value, current.value) < 0){
                 return containsHelper(current.left, value);
             }
         }
@@ -258,80 +282,81 @@ public class IntSuchBaum {
     }
 
 
-    public Knoten remove(Integer removeValue){
-        Knoten knoten = searchNode(removeValue, root); //hilfsfunktion, um den knoten des entfernenden elements zu suchen
-        if (knoten == null){ //dh der gesuchte wert ist nicht im baum enthalten
+    public Knoten remove(T removeValue){
+        Knoten Knoten = searchNode(removeValue, root); //hilfsfunktion, um den Knoten des entfernenden elements zu suchen
+        if (Knoten == null){ //dh der gesuchte wert ist nicht im baum enthalten
             return null;
         }
 
-        Knoten parent = searchParent(root, knoten); //hilfsfunktion, um parent des gesuchten element zu finden
+        Knoten parent = searchParent(root, Knoten); //hilfsfunktion, um parent des gesuchten element zu finden
 
-        //Fall 1: der knoten hat keine teil bäume
-        if (knoten.left == null && knoten.right == null){
+        //Fall 1: der Knoten hat keine teil bäume
+        if (Knoten.left == null && Knoten.right == null){
 
-            if (knoten == root){ // Sonderfall wurzel wird entfernt
+            if (Knoten == root){ // Sonderfall wurzel wird entfernt
                 Knoten tmp = root;
                 root = null;
                 return tmp;
             }
 
-            //referenz zum elternknoten entfernen
-            if (parent.left == knoten) parent.left = null; //kein equals verwenden, da wenn parent.left null ist wird eine exception
-            if (parent.right == knoten) parent.right = null;
-            return knoten;
+            //referenz zum elternknoten entfernen //TODO compareHelper
+            if (parent.left == Knoten) parent.left = null; //kein equals verwenden, da wenn parent.left null ist wird eine exception
+            if (parent.right == Knoten) parent.right = null;
+            return Knoten;
         }
 
         //Fall 2: ein teilbaum
-        if (hasOnlyOneSubtree(knoten)){
+        if (hasOnlyOneSubtree(Knoten)){
 
-            if (knoten == root){ // Sonderfall wurzel wird entfernt
+            //TODO laskdjfhslkdjfhsalkdjfhsalkdjfhsalkdjfhskladjfhskladhfslkadhfslakdhflkashdflkasdhfslkajdfhklashdflkashdfkshfdskh compareHElper
+            if (Knoten == root){ // Sonderfall wurzel wird entfernt
                 Knoten tmp = root;
-                Knoten nachfolger = searchInorderReplacer(knoten);
+                Knoten nachfolger = searchInorderReplacer(Knoten);
                 remove(nachfolger.value); //entfernt nachfolger und strukturiert je nachdem den baum um
                 root.value = nachfolger.value; //wert in root durch nachfolger überschreiben
                 return tmp;
             }
 
-            if (parent.left == knoten){ //gesuchter knoten liegt links vom parent
-                if (knoten.left != null){ //Teilbaum liegt links
-                    parent.left = knoten.left; //referenz im elternknoten auf teilbaum vom gesuchten knoten setzt
+            if (parent.left == Knoten){ //gesuchter Knoten liegt links vom parent
+                if (Knoten.left != null){ //Teilbaum liegt links
+                    parent.left = Knoten.left; //referenz im elternknoten auf teilbaum vom gesuchten Knoten setzt
                 }
                 else { //Teilbaum liegt rechts
-                    parent.left = knoten.right; //referenz im elternknoten auf teilbaum vom gesuchten knoten setzt
+                    parent.left = Knoten.right; //referenz im elternknoten auf teilbaum vom gesuchten Knoten setzt
                 }
             }
-            if (parent.right == knoten){ // gesuchter knoten liegt rechts vom parent
-                if (knoten.left != null){ //Teilbaum liegt links
-                    parent.right = knoten.left; //referenz im elternknoten auf teilbaum vom gesuchten knoten setzt
+            if (parent.right == Knoten){ // gesuchter Knoten liegt rechts vom parent
+                if (Knoten.left != null){ //Teilbaum liegt links
+                    parent.right = Knoten.left; //referenz im elternknoten auf teilbaum vom gesuchten Knoten setzt
                 }
                 else { //Teilbaum liegt rechts
-                    parent.right = knoten.right; //referenz im elternknoten auf teilbaum vom gesuchten knoten setzt
+                    parent.right = Knoten.right; //referenz im elternknoten auf teilbaum vom gesuchten Knoten setzt
                 }
             }
-            return knoten;
+            return Knoten;
         }
 
         //Fall 3: zwei teilbäume
-        if (knoten.left != null && knoten.right != null){
+        if (Knoten.left != null && Knoten.right != null){
 
-            if (knoten == root){ // Sonderfall wurzel wird entfernt
+            if (Knoten == root){ // Sonderfall wurzel wird entfernt
                 Knoten tmp = root;
-                Knoten nachfolger = searchInorderReplacer(knoten);
+                Knoten nachfolger = searchInorderReplacer(Knoten);
                 remove(nachfolger.value); //entfernt nachfolger und strukturiert je nachdem den baum um
                 root.value = nachfolger.value; //wert in root durch nachfolger überschreiben
                 return tmp;
             }
 
 
-            parent = searchParent(root, knoten); //parent vom gesuchten element
-            Knoten inorderReplacer = searchInorderReplacer(knoten); //Sucht den Nachfolger
+            parent = searchParent(root, Knoten); //parent vom gesuchten element
+            Knoten inorderReplacer = searchInorderReplacer(Knoten); //Sucht den Nachfolger
             Knoten parentOfReplacer = searchParent(root,inorderReplacer); //sucht den elternknoten vom Nachfolger
 
             //Der wert im gesuchten Knoten wird durch seinen nachfolger überschrieben
-            if (parent.left == knoten){  //knoten liegt links vom parent
+            if (parent.left == Knoten){  //Knoten liegt links vom parent
                 parent.left.value = inorderReplacer.value; //überschrieben
             }
-            if (parent.right == knoten){ //Knoten liegt rechts vom parent
+            if (parent.right == Knoten){ //Knoten liegt rechts vom parent
                 parent.right.value = inorderReplacer.value; //überschreiben
             }
 
@@ -343,7 +368,7 @@ public class IntSuchBaum {
                 parentOfReplacer.right = null;
             }
         }
-        return knoten;
+        return Knoten;
     }
 
 
@@ -384,55 +409,53 @@ public class IntSuchBaum {
 
         return stepsInRightTree > stepsInLeftTree ? smallestRight : highestLeft;
     }
-    private boolean hasOnlyOneSubtree(Knoten knoten){
-        if (knoten.left != null && knoten.right == null){
+    private boolean hasOnlyOneSubtree(Knoten Knoten){
+        if (Knoten.left != null && Knoten.right == null){
             return true;
         }
-        if (knoten.left == null && knoten.right != null){
+        if (Knoten.left == null && Knoten.right != null){
             return true;
         }
         return false;
     }
-    private Knoten searchParent(Knoten current, Knoten knoten){
+    private Knoten searchParent(Knoten current, Knoten Knoten){
+        //in jedem if eine return anweisung, deswegen macht es wenig sinn else if zu verwenden, da jer block eh nur 1-mal ausgeführt wird
         if (current.left != null){
-            if (current.left.equals(knoten)){
+            if (compareHelper(current.left.value, Knoten.value) == 0){
                 return current;
             }
         }
         if (current.right != null){
-            if (current.right.equals(knoten)){
+            if (compareHelper(current.right.value, Knoten.value) == 0){
                 return current;
             }
         }
-        if (knoten.value > current.value && current.right != null){
-            return searchParent(current.right, knoten);
+        if (compareHelper(Knoten.value, current.value) > 0  &&  current.right != null){
+            return searchParent(current.right, Knoten);
         }
-        if (knoten.value < current.value && current.left != null){
-            return searchParent(current.left, knoten);
+        if (compareHelper(Knoten.value, current.value) < 0  &&  current.left != null){
+            return searchParent(current.left, Knoten);
         }
         else {
             return null;
         }
     }
-    private Knoten searchNode(Integer removeValue, Knoten current){
-        if (removeValue == current.value){
+    private Knoten searchNode(T removeValue, Knoten current){
+        if (compareHelper(removeValue, current.value) == 0){
             return current;
-        }
-        else if (removeValue > current.value && current.right != null){
+        } else if (compareHelper(removeValue, current.value) > 0  && current.right != null) {
             return searchNode(removeValue, current.right);
-        }
-        else if (removeValue < current.value && current.left != null){
+        } else if (compareHelper(removeValue, current.value) < 0  && current.left != null) {
             return searchNode(removeValue, current.left);
-        }
-        else {
+        } else {
             return null;
         }
     }
 
 
     public static void main(String[] args) {
-        IntSuchBaum baum = new IntSuchBaum();
-        baum.insert(6);
+        SuchBaum baum = new SuchBaum<Integer>();
+        baum.insert("kg"); //laufzeit fehler, da der suchbaum baum den typparameter Integer hat und "Kg" kein Integer ist
         baum.insert(4);
         baum.insert(1);
         baum.insert(9);
